@@ -13,7 +13,7 @@ class BaseAsyncPool(BasePool):
         self.queue=asyncio.PriorityQueue(loop=self.loop)
         self.start_time=None #start time of this pool
         return
-    def start_work_and_wait_done(self, fetcher_num=5, is_over=True):
+    def start_work_and_wait_done(self, fetcher_num=10, is_over=True):
         #start this pool and wait for finishing
         #fetcher_num:the count of tasks
         try:
@@ -75,6 +75,7 @@ class AsyncPool(BaseAsyncPool):
     async def work(self,index):
         logging.warning("Worker[%s] start", index)
         headers={"User-Agent":make_random_useragent(),"Accept-Encoding":"gzip"}
+
         session=aiohttp.ClientSession(loop=self.loop,headers=headers)
         #for i in range(1):
         while True:
@@ -86,8 +87,8 @@ class AsyncPool(BaseAsyncPool):
                 except asyncio.CancelledError:
                     break
 
-                fetch_result,content=await self.fetch(session,url,keys,repeat)
-                if fetch_result>0:
+                fetch_result,content=await self.fetch(session,url,keys,repeat,index)
+                if fetch_result==1:
                     self.update_number_dict(TPEnum.URL_FETCH,+1)
                 #parse the content
                     self.update_number_dict(TPEnum.HTM_NOT_PARSE,+1)
@@ -109,6 +110,7 @@ class AsyncPool(BaseAsyncPool):
                 elif fetch_result==0:
                     self.add_a_task(TPEnum.URL_FETCH,(priority+1,url,keys,deep,repeat+1))
                 else:
+                    self.update_number_dict(TPEnum.URL_FETCH, +1)#self.finish_a_task()
                     pass
             #finish_a_task not implemented
                 self.finish_a_task(task_name=TPEnum.URL_FETCH)
@@ -146,7 +148,7 @@ class AsyncPool(BaseAsyncPool):
         :return (parse_result, url_list, save_list): parse_result can be -1(parse failed), 1(parse success)
         :return (parse_result, url_list, save_list): url_list is [(url, keys, priority), ...], save_list is [item, ...]
         """
-        logging.debug("Parser start: priority=%s, keys=%s, deep=%s, url=%s", priority, keys, deep, url)
+        logging.warning("Parser start: priority=%s, keys=%s, deep=%s, url=%s", priority, keys, deep, url)
 
         try:
             *_, cur_html = content

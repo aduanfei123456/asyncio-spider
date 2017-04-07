@@ -8,7 +8,11 @@ import logging
 from bs4 import BeautifulSoup
 import re
 import requests
-
+import random
+proxy_l=["36.42.33.13:8080","211.75.72.49:80","120.3.55.174:8998"
+         ,"112.25.162.237:8998","183.165.188.31:8998","113.100.48.198:8998",
+         "39.65.89.167:8998","120.192.230.34:80","122.224.109.109:80",
+         "121.61.101.26:808","210.22.145.46:80"]
 
 
 def parse( priority, url, keys, deep, content):
@@ -94,6 +98,10 @@ async def getpage():
                 "m_imdb, m_score, m_comment, m_starpercent)"
                 " VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
                 [i.strip() if i is not None else "" for i in item])
-loop.run_until_complete(getpage())
-#asyncio.ensure_future(getpage())
-#loop.run_forever()
+proxie = {
+        'http' : 'http://122.193.14.102:80'
+    }
+#resp = requests.get(url="http://blog.csdn.net/f777x0/article/details/51452838", headers=headers, proxies=proxie)
+#print(resp.text)
+asyncio.ensure_future(getpage())
+loop.run_forever()
